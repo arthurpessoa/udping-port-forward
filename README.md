@@ -1,4 +1,92 @@
 UDPing
-======
+=============================================================================
 
-UDPing is a client / server program that optimizes TCP connections used in online games such Ragnarök Online, World of Warcraft and Tibia
+This project tunnels TCP data through a UDP tunnel optimizing TCP connections
+used in online games such Ragnarök Online, World of Warcraft and Tibia. 
+The executable can act as the server or client. The server acts as a proxy 
+for the client, listening on a specified UDP port and creating a connection to
+a TCP server that the client specifies. The client listens on a TCP port, 
+acting as the server that some TCP client connects to. The client recevies 
+any TCP data on that port and sends the data to the udpserver, which sends 
+it to the TCP connection it made with the desired TCP server.
+
+
+-----------------------------------------------------------------------------
+1.) Building
+
+On *nix systems in Makefile, make sure that the correct value is set for the 
+"OS" variable. Then just run 'make'.
+
+On Windows, if using GCC in Cygwin, make sure the "OS" variable is set to
+CYGWIN in Makefile and run 'make'.
+
+If using the VC++ compiler (cl.exe), make sure to be in the "Visual Studio
+Command Prompt", or at least have all the environment variables set correctly,
+then run 'nmake.exe /f Makefile.Win32'. Also make sure the location of 
+WS2_32.Lib is specified correctly fo the LIBS variable (if building for x64,
+set path to the 64-bit version of WS2_32.Lib).
+
+
+-----------------------------------------------------------------------------
+2.) Running
+
+usage: ./udptunnel [-v] [-6] <-s|-c> <args>
+  -c    client mode (default)
+        <args>: [local host] <local port> <proxy host> <proxy port>
+                <remote host> <remote port>
+  -s    server mode
+        <args>: [host] port [acl ...]
+        acl: [s=<src ip>,][d=<dst ip>,][dp=<dst port>,][a=allow|deny]
+  -6    use IPv6
+  -v    show some debugging output (use up to 3 for increaing levels)
+  -h    show this junks and exit
+
+
+To run the server:
+
+    udptunnel -s [-6] [host] port [acl ...]
+
+where the port is a UDP port to listen for messages from the udpclient and host
+is the address to listen on. Use the -6 option to listen on IPv6 addresses.
+
+After the port, the rest of the arguments are the access control list, with
+comma-separated parameters for each entry. Access can be control based on the
+source IP, destination IP, source port, and destination port. A catch-all
+entry is added at the end of every list that allows everything. To deny anything
+that doesn't match your entries, put "a=deny" as the last entry. In a Window's
+shell, each acl entry needs double quotes (") around them.
+
+Server Examples:
+    udptunnel -s 4444
+    udptunnel -s -6 2001::10:3 4444
+    udptunnel -s 4444 d=10.0.0.1,dport=80,a=deny dport=80,a=allow a=deny
+
+
+To run the client:
+
+    udptunnel -c [-6] [local host] <local port> <proxy host> <proxy port>
+            <remote host> <remote port>
+
+local host/port - Host and port for the TCP server to listen on. If the host
+                  isn't supplied, it will listen on all available addresses.
+proxy host/port - Host and port that udpserver is listening on.
+remote host/port - Host and port to forward the received TCP data to. The host
+                   is relative to the proxy machine (e.g. specifiying 127.0.0.1
+                   is the proxy machine itself).
+Use the -6 option to listen and connect using IPv6 addresses.
+
+Example for tunneling ssh data through the tunnel between two computers with IP
+addresses 192.168.1.2 (client) and 192.168.1.1 (server):
+
+    server# ./udptunnel -s 192.168.1.1 4444
+    client# ./udptunnel -c 127.0.0.1 3333 192.168.1.1 4444 127.0.0.1 22
+    client# ssh -p 3333 user@127.0.0.1
+
+
+This code has been tested and works on Linux, Solaris 10 x86, and Cygwin (but
+requires the IPv6 extension - http://win6.jp/Cygwin/index.html). Please send
+any bugs or issues to the contact listed above.
+
+-----------------------------------------------------------------------------
+
+A Special thanks to Daniel Meekins, for the first UDPTunnel
