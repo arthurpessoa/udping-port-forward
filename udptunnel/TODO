@@ -1,0 +1,14 @@
+=============================================================================
+
+  UDPTUNNEL TODO
+
+  Author: Daniel Meekins
+  Contact: dmeekins - gmail
+
+  Copyright (C) 2009 Daniel Meekins
+
+=============================================================================
+
+- Allow to run using IPv6 and IPv4 at the same time (e.g. IPv4 on the outter
+  connections and IPv6 for the tunnel, or visa versa).
+- Make sure can use ipv4-mapped, like ffff:1.2.3.4
